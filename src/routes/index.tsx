@@ -77,11 +77,11 @@ function Cadastro() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!isValidCpf(f.cpf)) return toast.error("Informe um CPF válido");
-    if (f.phone.length < 14) return toast.error("Informe um telefone válido");
-    if (f.cep.length !== 9) return toast.error("Informe um CEP válido");
-    if (!file) return toast.error("Anexe a foto do RG ou CNH");
-    if (!declared) return toast.error("Confirme a declaração para continuar");
+    if (!isValidCpf(f.cpf)) { toast.error("Informe um CPF válido"); return; }
+    if (f.phone.length < 14) { toast.error("Informe um telefone válido"); return; }
+    if (f.cep.length !== 9) { toast.error("Informe um CEP válido"); return; }
+    if (!file) { toast.error("Anexe a foto do RG ou CNH"); return; }
+    if (!declared) { toast.error("Confirme a declaração para continuar"); return; }
     setBusy(true);
     try {
       const fd = new FormData();

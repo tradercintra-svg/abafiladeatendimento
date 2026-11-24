@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- Tutors are anonymous: ticket create/status/cancel go through server functions (src/lib/tickets.functions.ts) using the admin client and a per-ticket access token — never give anon direct table access, since rows hold CPF and documents.
+- Staff access = `staff` row in user_roles (first account ever created gets it via trigger); /admin reads tickets via RLS + realtime.

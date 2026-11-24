@@ -63,7 +63,7 @@ function Login() {
       ? await supabase.auth.signInWithPassword({ email, password })
       : await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/admin` } });
     setBusy(false);
-    if (error) return toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message);
+    if (error) { toast.error(error.message === "Invalid login credentials" ? "E-mail ou senha incorretos" : error.message); return; }
     if (mode === "up" && !data.session) toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
   }
   return (
@@ -117,7 +117,8 @@ function Panel() {
   const tickets = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tickets").select("*").gte("created_at", startOfToday()).order("created_at");
+      const { data, error } = await supabase.from("tickets").select("*")
+        .or(`created_at.gte.${startOfToday()},status.in.(waiting,called)`).order("created_at");
       if (error) throw error;
       return data;
     },
@@ -145,7 +146,8 @@ function Panel() {
   const done = list.filter((t) => t.status === "done" && t.called_at && t.finished_at);
   const avgReal = useMemo(() => done.length
     ? Math.round(done.reduce((s, t) => s + (+new Date(t.finished_at!) - +new Date(t.called_at!)), 0) / done.length / 60000) : null, [done]);
-  const total = list.filter((t) => t.status !== "cancelled").length;
+  const today = startOfToday();
+  const total = list.filter((t) => t.status !== "cancelled" && t.created_at >= today).length;
 
   async function update(id: string, patch: Partial<Ticket>) {
     const { error } = await supabase.from("tickets").update(patch).eq("id", id);
@@ -155,7 +157,7 @@ function Panel() {
 
   async function callNext() {
     const next = waiting.find((t) => filter === "all" || t.service === filter);
-    if (!next) return toast.info("Nenhuma senha aguardando" + (filter === "all" ? "" : " para este serviço"));
+    if (!next) { toast.info("Nenhuma senha aguardando" + (filter === "all" ? "" : " para este serviço")); return; }
     setBusy(true);
     await update(next.id, { status: "called", called_at: new Date().toISOString() });
     setBusy(false);
@@ -216,7 +218,7 @@ function Panel() {
                 <li key={t.id}>
                   <button onClick={() => setSelected(t)} className="flex w-full items-center gap-3 py-3 text-left hover:bg-muted/60 sm:px-2">
                     <span className="w-6 text-sm text-muted-foreground">{i + 1}º</span>
-                    <span className="w-20 font-display text-lg font-bold text-primary">{t.code}</span>
+                    <span className="w-24 whitespace-nowrap font-display text-lg font-bold text-primary">{t.code}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{t.tutor_name}</span>
                       <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -255,9 +257,9 @@ function SettingsCard({ current, onSaved }: { current: number; onSaved: () => vo
   useEffect(() => setV(String(current)), [current]);
   async function save() {
     const n = Number(v);
-    if (!Number.isInteger(n) || n < 1 || n > 180) return toast.error("Informe entre 1 e 180 minutos");
+    if (!Number.isInteger(n) || n < 1 || n > 180) { toast.error("Informe entre 1 e 180 minutos"); return; }
     const { error } = await supabase.from("settings").update({ avg_minutes: n }).eq("id", 1);
-    if (error) return toast.error("Não foi possível salvar");
+    if (error) { toast.error("Não foi possível salvar"); return; }
     toast.success("Tempo médio atualizado");
     onSaved();
   }

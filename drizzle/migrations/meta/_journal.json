@@ -15,6 +15,20 @@
       "when": 1795193137065,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795643425543,
+      "tag": "0002_add_admin_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795643477091,
+      "tag": "0003_tutors_animals_rpcs_rls",
+      "breakpoints": true
     }
   ]
 }

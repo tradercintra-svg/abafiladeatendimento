@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      animals: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          species: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          species: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          species?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "animals_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           avg_minutes: number
@@ -32,6 +67,7 @@ export type Database = {
       tickets: {
         Row: {
           access_token: string
+          animal_id: string | null
           animal_name: string
           called_at: string | null
           cep: string
@@ -48,10 +84,12 @@ export type Database = {
           species: string
           status: string
           street: string
+          tutor_id: string | null
           tutor_name: string
         }
         Insert: {
           access_token?: string
+          animal_id?: string | null
           animal_name: string
           called_at?: string | null
           cep: string
@@ -68,10 +106,12 @@ export type Database = {
           species: string
           status?: string
           street: string
+          tutor_id?: string | null
           tutor_name: string
         }
         Update: {
           access_token?: string
+          animal_id?: string | null
           animal_name?: string
           called_at?: string | null
           cep?: string
@@ -88,7 +128,68 @@ export type Database = {
           species?: string
           status?: string
           street?: string
+          tutor_id?: string | null
           tutor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_animal_id_fkey"
+            columns: ["animal_id"]
+            isOneToOne: false
+            referencedRelation: "animals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutors: {
+        Row: {
+          cep: string | null
+          cpf: string
+          created_at: string
+          doc_path: string | null
+          id: string
+          name: string | null
+          neighborhood: string | null
+          number: string | null
+          phone: string | null
+          street: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cep?: string | null
+          cpf: string
+          created_at?: string
+          doc_path?: string | null
+          id?: string
+          name?: string | null
+          neighborhood?: string | null
+          number?: string | null
+          phone?: string | null
+          street?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cep?: string | null
+          cpf?: string
+          created_at?: string
+          doc_path?: string | null
+          id?: string
+          name?: string | null
+          neighborhood?: string | null
+          number?: string | null
+          phone?: string | null
+          street?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -115,6 +216,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_exists: { Args: never; Returns: boolean }
+      cancel_my_ticket: { Args: { p_ticket_id: string }; Returns: boolean }
+      claim_first_admin: { Args: never; Returns: boolean }
+      create_ticket: {
+        Args: { p_animal_id: string; p_service: string }
+        Returns: {
+          code: string
+          id: string
+          status: string
+        }[]
+      }
+      get_my_ticket_status: {
+        Args: { p_ticket_id: string }
+        Returns: {
+          animal_name: string
+          avg_minutes: number
+          code: string
+          pessoas_na_frente: number
+          service: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -122,10 +245,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_staff_or_admin: { Args: { _user_id: string }; Returns: boolean }
       next_ticket_code: { Args: { _service: string }; Returns: string }
+      owns_tutor: { Args: { _tutor_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "staff"
+      app_role: "staff" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -253,7 +378,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["staff"],
+      app_role: ["staff", "admin"],
     },
   },
 } as const
